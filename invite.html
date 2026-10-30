@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f2a3d">
+<title>Visitor Invite · Site Guide</title>
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root { --bg: #eef2f5; --surface: #fff; --ink: #13222e; --muted: #5a6b78; --line: #d6dee5; --head: #0f2a3d; --accent: #0e8a7e; --route: #ff6a13; --warn-bg: #fff3e0; --warn-ink: #8a4a00; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, "Noto Sans", "Microsoft YaHei", sans-serif; color: var(--ink); background: var(--bg); }
+  header { background: var(--head); color: #fff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  header h1 { margin: 0; font-size: 18px; }
+  header a { color: #fff; font-size: 14px; }
+  .banner { background: #ffd75e; color: #3d2f00; font-size: 12px; font-weight: 600; text-align: center; padding: 5px 16px; }
+  main { max-width: 1000px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; grid-template-columns: 1fr; }
+  @media (min-width: 900px) { main { grid-template-columns: 380px 1fr; align-items: start; } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 12px; }
+  .card h2 { margin: 0; font-size: 16px; }
+  label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  input, select, textarea { font: inherit; font-size: 15px; color: var(--ink); padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); width: 100%; }
+  textarea { min-height: 220px; resize: vertical; line-height: 1.45; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .check { display: flex; gap: 8px; align-items: center; color: var(--ink); font-weight: 500; }
+  .check input { width: auto; }
+  .lang { display: flex; gap: 6px; }
+  .lang button { flex: 1; }
+  button { font: inherit; font-weight: 700; padding: 11px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+  button.on, button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .actions > * { flex: 1 1 140px; }
+  .wa { background: #1fa855; border-color: #1fa855; color: #fff; }
+  .note { font-size: 13px; color: var(--muted); margin: 0; }
+  .privacy { font-size: 12.5px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; display: grid; gap: 4px; }
+  .privacy p { margin: 0; }
+  .warn { font-size: 13px; background: var(--warn-bg); color: var(--warn-ink); padding: 8px 10px; border-radius: 10px; font-weight: 600; margin: 0; }
+  .link { font-size: 13px; word-break: break-all; background: var(--bg); padding: 8px 10px; border-radius: 10px; }
+  /* printable welcome sheet */
+  .sheet { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .s-head { background: var(--head); color: #fff; padding: 20px 22px; }
+  .s-head .site { opacity: .8; font-size: 14px; }
+  .s-head .hi { font-size: 26px; font-weight: 800; margin-top: 4px; }
+  .s-body { padding: 18px 22px; display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: start; }
+  .s-body dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 15px; }
+  .s-body dt { color: var(--muted); }
+  .s-body dd { margin: 0; font-weight: 600; }
+  .s-qr { text-align: center; font-size: 12px; color: var(--muted); max-width: 190px; }
+  .s-qr .qr { padding: 8px; border: 3px solid var(--accent); border-radius: 12px; display: inline-block; }
+  .s-foot { background: var(--route); color: #fff; padding: 12px 22px; font-weight: 700; }
+  .s-demo { font-size: 11px; color: var(--warn-ink); padding: 0 22px 12px; }
+  @media (max-width: 560px) { .s-body { grid-template-columns: 1fr; } .two { grid-template-columns: 1fr; } }
+  @media print {
+    body { background: #fff; } header, .banner, .card, .no-print { display: none !important; }
+    main { display: block; padding: 0; max-width: none; }
+    .sheet { border: 0; border-radius: 0; }
+    @page { size: A4; margin: 12mm; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Visitor invite</h1>
+  <a href="index.html" id="back">← Site Guide</a>
+</header>
+<div id="demo" class="banner" hidden>DEMO — layout is a placeholder, not the real site</div>
+
+<main>
+  <section class="card" aria-label="Visit details">
+    <h2>1. Visit details</h2>
+    <label>Site <select id="site"></select></label>
+    <div class="two">
+      <label>Arrives at <select id="from"></select></label>
+      <label>Going to <select id="to"></select></label>
+    </div>
+    <div class="two">
+      <label>Date <input id="date" type="date"></label>
+      <label>Time <input id="time" type="time" value="09:00"></label>
+    </div>
+    <label>Visitor's name (optional) <input id="name" autocomplete="off" placeholder="e.g. Ms Tan"></label>
+    <div class="two">
+      <label>Host (you) <input id="host" autocomplete="off" placeholder="Your name"></label>
+      <label>Host phone (optional) <input id="phone" type="tel" autocomplete="off" placeholder="01x-xxx xxxx"></label>
+    </div>
+    <label class="check"><input id="bringIc" type="checkbox" checked> Remind them to bring IC / passport</label>
+    <div>
+      <div class="note" style="margin-bottom:6px;font-weight:600">Message language</div>
+      <div class="lang" role="group" aria-label="Message language">
+        <button data-lang="en" class="on">English</button><button data-lang="ms">BM</button><button data-lang="zh">中文</button>
+      </div>
+    </div>
+    <div class="privacy" role="note">
+      <p lang="en"><b>Privacy:</b> this page does not save or send anything. The visitor's name and your phone number stay only in the message you choose to send. The link contains place codes only.</p>
+      <p lang="ms"><b>Privasi:</b> halaman ini tidak menyimpan atau menghantar sebarang data. Nama pelawat dan nombor telefon anda hanya ada dalam mesej yang anda pilih untuk hantar. Pautan hanya mengandungi kod lokasi.</p>
+    </div>
+    <p id="fileWarn" class="warn" hidden>You opened this page as a file on your computer, so the link would only work on this PC. Open the invite page from the guide's web address instead.</p>
+  </section>
+
+  <section class="card" aria-label="Message">
+    <h2>2. Send it</h2>
+    <label>Message (you can edit it) <textarea id="msg"></textarea></label>
+    <div class="actions">
+      <button id="copy" class="primary">Copy message</button>
+      <button id="wa" class="wa">Open WhatsApp</button>
+      <button id="share">Share…</button>
+      <button id="print">Print welcome sheet</button>
+    </div>
+    <div class="link" id="link"></div>
+
+    <h2 style="margin-top:6px">Welcome sheet preview</h2>
+    <div class="sheet" id="sheet">
+      <div class="s-head"><div class="site" id="sSite"></div><div class="hi" id="sHi"></div></div>
+      <div class="s-body">
+        <dl id="sList"></dl>
+        <div class="s-qr"><div class="qr" id="sQr"></div><div id="sQrText"></div></div>
+      </div>
+      <div class="s-foot" id="sFoot"></div>
+      <div class="s-demo" id="sDemo" hidden>DEMO — map layout is a placeholder, not the real site.</div>
+    </div>
+  </section>
+</main>
+
+<script src="data/sites.js"></script>
+<script>
+/* Visitor invite: builds a WhatsApp-ready message and a printable welcome
+   sheet with a QR link to the walking route. No data leaves the page unless
+   the host copies, shares or prints it. */
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const SITES = (window.SITES || []).filter((s) => s.pois);
+  const params = new URLSearchParams(location.search);
+  let lang = "en";
+
+  // message text per language
+  const TXT = {
+    en: {
+      hi: (n) => (n ? `Hi ${n},` : "Hello,"), invited: (site, d, t) => `you're invited to ${site} on ${d} at ${t}.`,
+      address: "Address", drive: "Drive there (Waze)", walk: (a, b) => `Walking directions from ${a} to ${b}`,
+      tour: (x) => `Your walking tour: ${x}`, ic: "Please bring your IC / passport and register at the Guard House.",
+      host: "Your host", welcome: (n) => (n ? `Welcome, ${n}` : "Welcome"), when: "When", meet: "Go to", start: "Arrive at",
+      scan: "Scan for walking directions", foot: "Scan the QR code when you arrive. It shows the way, step by step."
+    },
+    ms: {
+      hi: (n) => (n ? `Hai ${n},` : "Salam sejahtera,"), invited: (site, d, t) => `anda dijemput ke ${site} pada ${d}, jam ${t}.`,
+      address: "Alamat", drive: "Pandu ke sana (Waze)", walk: (a, b) => `Arah berjalan dari ${a} ke ${b}`,
+      tour: (x) => `Lawatan berjalan anda: ${x}`, ic: "Sila bawa IC / pasport dan daftar di pondok pengawal.",
+      host: "Tuan rumah", welcome: (n) => (n ? `Selamat datang, ${n}` : "Selamat datang"), when: "Bila", meet: "Pergi ke", start: "Tiba di",
+      scan: "Imbas untuk arah berjalan", foot: "Imbas kod QR apabila tiba. Ia menunjukkan jalan, langkah demi langkah."
+    },
+    zh: {
+      hi: (n) => (n ? `${n}您好,` : "您好,"), invited: (site, d, t) => `诚邀您于 ${d} ${t} 前来${site}。`,
+      address: "地址", drive: "驾车前往 (Waze)", walk: (a, b) => `从${a}到${b}的步行路线`,
+      tour: (x) => `您的步行导览:${x}`, ic: "请携带身份证/护照,并在保安亭登记。",
+      host: "接待人", welcome: (n) => (n ? `欢迎,${n}` : "欢迎"), when: "时间", meet: "前往", start: "到达",
+      scan: "扫码查看步行路线", foot: "到达后请扫描二维码,按步骤指引前往。"
+    }
+  };
+  const LOCALE = { en: "en-MY", ms: "ms-MY", zh: "zh-CN" };
+  const L = (o) => (o ? o[lang] || o.en || "" : "");
+  const site = () => SITES.find((s) => s.id === $("site").value) || SITES[0];
+
+  // guide address: the folder this page is served from
+  const base = location.href.split(/[?#]/)[0].replace(/[^/]*$/, "");
+  $("fileWarn").hidden = location.protocol !== "file:";
+
+  function fillSites() {
+    SITES.forEach((s) => $("site").add(new Option(s.name.en, s.id)));
+    if (SITES.some((s) => s.id === params.get("site"))) $("site").value = params.get("site");
+  }
+
+  function fillPlaces() {
+    const s = site();
+    $("from").innerHTML = ""; $("to").innerHTML = "";
+    s.pois.forEach((p) => {
+      $("from").add(new Option(p.label.en, p.id));
+      if (p.type !== "assembly") $("to").add(new Option(p.label.en, p.id));
+    });
+    (s.tours || []).forEach((tour) => $("to").add(new Option("🧭 Tour: " + tour.label.en, "tour:" + tour.id)));
+    const gate = s.pois.find((p) => p.type === "gate");
+    if (gate) $("from").value = gate.id;
+    const visit = s.pois.find((p) => p.type === "meeting") || s.pois.find((p) => p.type === "lobby");
+    if (visit) $("to").value = visit.id;
+    $("demo").hidden = $("sDemo").hidden = s.status !== "demo";
+  }
+
+  function link() {
+    const s = site(), to = $("to").value;
+    const p = new URLSearchParams({ site: s.id });
+    if (to.startsWith("tour:")) p.set("tour", to.slice(5));
+    else { p.set("from", $("from").value); p.set("to", to); }
+    p.set("lang", lang);
+    return base + "index.html?" + p.toString();
+  }
+
+  function dateText() {
+    const v = $("date").value;
+    if (!v) return "…";
+    const d = new Date(v + "T00:00");
+    return d.toLocaleDateString(LOCALE[lang], { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  }
+
+  function build() {
+    const s = site(), T = TXT[lang], url = link();
+    const name = $("name").value.trim(), host = $("host").value.trim(), phone = $("phone").value.trim();
+    const from = s.pois.find((p) => p.id === $("from").value);
+    const toVal = $("to").value;
+    const tour = toVal.startsWith("tour:") ? (s.tours || []).find((x) => x.id === toVal.slice(5)) : null;
+    const to = tour ? null : s.pois.find((p) => p.id === toVal);
+    const siteName = L(s.name), time = $("time").value || "…";
+    const walkLine = tour ? T.tour(L(tour.label)) : T.walk(L(from.label), L(to.label));
+    const lines = [
+      T.hi(name) + (lang === "zh" ? "" : " ") + T.invited(siteName, dateText(), time), "",
+      s.address ? `📍 ${T.address}: ${s.address}` : "",
+      s.waze ? `🚗 ${T.drive}: ${s.waze}` : "",
+      `🚶 ${walkLine}: ${url}`, "",
+      $("bringIc").checked ? T.ic : "",
+      host ? `${T.host}: ${host}${phone ? " (" + phone + ")" : ""}` : ""
+    ];
+    $("msg").value = lines.join("\n").replace(/\n{3,}/g, "\n\n").trim(); // drop empty lines left by optional parts
+    $("link").textContent = url;
+
+    // welcome sheet
+    $("sSite").textContent = siteName;
+    $("sHi").textContent = T.welcome(name);
+    const rows = [[T.when, `${dateText()}, ${time}`], [T.start, L(from.label)], [T.meet, tour ? L(tour.label) : L(to.label)]];
+    if (s.address) rows.push([T.address, s.address]);
+    if (host) rows.push([T.host, host + (phone ? " · " + phone : "")]);
+    $("sList").innerHTML = "";
+    for (const [k, v] of rows) {
+      const dt = document.createElement("dt"); dt.textContent = k;
+      const dd = document.createElement("dd"); dd.textContent = v;
+      $("sList").append(dt, dd);
+    }
+    $("sQrText").textContent = T.scan;
+    $("sFoot").textContent = T.foot + ($("bringIc").checked ? " " + T.ic : "");
+    $("sQr").innerHTML = "";
+    if (typeof QRCode !== "undefined") new QRCode($("sQr"), { text: url, width: 160, height: 160, correctLevel: QRCode.CorrectLevel.M });
+    else $("sQr").textContent = "QR needs internet";
+  }
+
+  async function copy(text) {
+    try { await navigator.clipboard.writeText(text); flash($("copy"), "Copied ✓"); }
+    catch { window.prompt("Copy this:", text); }
+  }
+  function flash(btn, txt) { const old = btn.textContent; btn.textContent = txt; setTimeout(() => (btn.textContent = old), 1500); }
+
+  // tomorrow by default
+  const tmr = new Date(Date.now() + 864e5);
+  $("date").value = `${tmr.getFullYear()}-${String(tmr.getMonth() + 1).padStart(2, "0")}-${String(tmr.getDate()).padStart(2, "0")}`;
+
+  fillSites(); fillPlaces(); build();
+  $("site").onchange = () => { fillPlaces(); build(); };
+  ["from", "to", "date", "time", "name", "host", "phone", "bringIc"].forEach((id) => $(id).addEventListener("input", build));
+  ["from", "to", "bringIc"].forEach((id) => $(id).addEventListener("change", build));
+  document.querySelectorAll(".lang button").forEach((b) => (b.onclick = () => {
+    lang = b.dataset.lang;
+    document.querySelectorAll(".lang button").forEach((x) => x.classList.toggle("on", x === b));
+    build();
+  }));
+  $("copy").onclick = () => copy($("msg").value);
+  $("wa").onclick = () => window.open("https://wa.me/?text=" + encodeURIComponent($("msg").value), "_blank", "noopener");
+  $("share").onclick = async () => {
+    if (!navigator.share) return copy($("msg").value);
+    try { await navigator.share({ text: $("msg").value }); } catch { /* cancelled */ }
+  };
+  $("share").hidden = !navigator.share;
+  $("print").onclick = () => window.print();
+})();
+</script>
+</body>
+</html>

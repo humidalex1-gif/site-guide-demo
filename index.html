@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f2a3d">
+  <title>Johor Site Guide</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 2 3 7v10l9 5 9-5V7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 12 3 7m9 5 9-5m-9 5v10" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+      </span>
+      <div>
+        <div class="title" data-i18n="appTitle">Site Guide</div>
+        <select id="siteSelect" aria-label="Site"></select>
+      </div>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button data-lang="en">EN</button><button data-lang="ms">BM</button><button data-lang="zh">中文</button>
+    </div>
+  </header>
+
+  <div id="demoBanner" class="banner" data-i18n="demo"></div>
+
+  <div id="emergBar" class="emerg-bar" role="alert" hidden>
+    <span class="eb-icon" aria-hidden="true">🚨</span>
+    <div class="eb-main"><strong id="ebTitle"></strong><span id="ebSub"></span></div>
+    <span id="ebTimer" class="eb-timer" hidden>0:00</span>
+    <button id="ebSafe" class="eb-safe"></button>
+    <button id="ebEnd" class="eb-end" data-i18n="endEmerg">End</button>
+    <div id="ebNote" class="eb-note"></div>
+  </div>
+
+  <main class="layout">
+    <section class="mapwrap" aria-label="Site map">
+      <svg id="map" xmlns="http://www.w3.org/2000/svg" role="img"></svg>
+      <div class="map-controls">
+        <button id="viewToggle" class="chip" title="3D / 2D">2D</button>
+        <button id="safetyToggle" class="chip" aria-pressed="false">⚠ <span data-i18n="safety">Safety</span></button>
+        <button id="facToggle" class="chip fac-chip" aria-pressed="false">🚻 <span data-i18n="facilities">Facilities</span></button>
+        <button id="zoomIn" class="round" aria-label="Zoom in">+</button>
+        <button id="zoomOut" class="round" aria-label="Zoom out">−</button>
+        <button id="zoomReset" class="round" aria-label="Reset view">⤢</button>
+      </div>
+      <div class="view-bar" role="group" aria-label="Map view">
+        <button id="rotL" class="vbtn" aria-label="Turn map left" title="Turn left">⟲</button>
+        <button id="northBtn" class="vbtn" aria-label="North up" title="North up"><span id="northNeedle" class="needle" aria-hidden="true"><b>N</b></span></button>
+        <button id="rotR" class="vbtn" aria-label="Turn map right" title="Turn right">⟳</button>
+        <button id="followBtn" class="vbtn" aria-pressed="false" aria-label="Turn map with my walking direction" title="Follow my direction">🧭</button>
+        <button id="dayBtn" class="vbtn">🌗</button>
+      </div>
+      <div id="bldCard" class="bld-card" hidden>
+        <button class="bc-close" aria-label="Close">×</button>
+        <strong></strong>
+        <div class="bc-list"></div>
+      </div>
+      <div id="legend" class="legend" hidden></div>
+      <div id="todo" class="todo" hidden>
+        <h2 data-i18n="todo"></h2>
+        <p data-i18n="todoHint"></p>
+      </div>
+    </section>
+
+    <aside class="panel" id="panel">
+      <div class="handle" aria-hidden="true"></div>
+
+      <div class="finder">
+        <div class="search">
+          <svg class="s-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <input id="searchBox" type="search" autocomplete="off" spellcheck="false" enterkeyhint="go"
+                 role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="searchList">
+          <button id="scanBtn" class="scan" type="button"><span aria-hidden="true">📷</span> <span data-i18n="lost">I'm lost</span></button>
+        </div>
+        <p id="searchHint" class="search-hint" hidden></p>
+        <ul id="searchList" class="results" role="listbox" hidden></ul>
+        <div id="nearby" class="nearby" role="group" aria-label="Nearest"></div>
+      </div>
+
+      <div class="route-form">
+        <label><span data-i18n="from">From</span>
+          <select id="fromSel"></select>
+        </label>
+        <button id="swap" class="swap" aria-label="Swap">⇅</button>
+        <label><span data-i18n="to">To</span>
+          <select id="toSel"></select>
+        </label>
+        <div class="row">
+          <button id="goBtn" class="primary" data-i18n="go">Show route</button>
+          <button id="clearBtn" class="ghost" data-i18n="clear">Clear</button>
+        </div>
+        <div class="opts row" role="group" aria-label="Route options">
+          <button type="button" class="opt" data-opt="covered" aria-pressed="false"><span aria-hidden="true">☔</span> <span data-i18n="optCovered">Covered</span></button>
+          <button type="button" class="opt" data-opt="stepFree" aria-pressed="false"><span aria-hidden="true">♿</span> <span data-i18n="optStepFree">Step-free</span></button>
+          <button type="button" class="opt" data-opt="noRestricted" aria-pressed="true"><span aria-hidden="true">⛔</span> <span data-i18n="optNoRestricted">Avoid restricted</span></button>
+        </div>
+      </div>
+
+      <div id="routeSummary" class="summary" hidden></div>
+
+      <div id="steps" class="steps" hidden>
+        <div class="step-card">
+          <div class="progress" aria-hidden="true"><i id="stepBar"></i></div>
+          <div class="slide">
+            <figure class="photo" id="stepPhoto"></figure>
+            <div class="maneuver">
+              <span id="stepIcon" class="m-icon"></span>
+              <div>
+                <div class="step-meta"><span id="stepCount"></span><span id="stepDist" class="dist"></span></div>
+                <p id="stepText" class="step-text" aria-live="polite"></p>
+              </div>
+            </div>
+            <p id="stepWarn" class="warn" hidden></p>
+          </div>
+          <div class="row">
+            <button id="prevStep" class="ghost" data-i18n="prev">Back</button>
+            <button id="playBtn" class="ghost icon-btn" aria-pressed="false">▶</button>
+            <button id="voiceBtn" class="ghost icon-btn" aria-pressed="false">🔇</button>
+            <button id="nextStep" class="primary" data-i18n="next">Next</button>
+          </div>
+        </div>
+        <details class="all-steps">
+          <summary data-i18n="allSteps">All steps</summary>
+          <ol id="stepList"></ol>
+        </details>
+      </div>
+
+      <div id="toursWrap" hidden>
+        <h3 data-i18n="tours">Tours</h3>
+        <div id="tours" class="chips"></div>
+      </div>
+
+      <div id="popularWrap">
+        <h3 data-i18n="popular">Popular routes</h3>
+        <div id="popular" class="chips"></div>
+      </div>
+
+      <div class="emergency">
+        <h3>🚨 <span data-i18n="emergency">Emergency</span></h3>
+        <p data-i18n="emergencyText"></p>
+        <p id="ehsLine" class="ehs-line"></p>
+        <button id="apBtn" class="danger" data-i18n="nearestAP">Route to nearest Assembly Point</button>
+        <button id="drillBtn" class="ghost drill-btn" data-i18n="startDrill">Practice drill</button>
+      </div>
+
+      <details class="info" id="infoBox">
+        <summary data-i18n="info">Site info</summary>
+        <dl id="infoList"></dl>
+      </details>
+    </aside>
+  </main>
+
+  <div id="scanner" class="scanner" role="dialog" aria-modal="true" aria-labelledby="scanTitle" hidden>
+    <div class="scan-box">
+      <h3 id="scanTitle" data-i18n="scanTitle">Where are you?</h3>
+      <div id="viewfinder" class="viewfinder"><video id="scanVideo" playsinline muted></video><span class="frame" aria-hidden="true"></span></div>
+      <p id="scanMsg" class="scan-msg" role="status"></p>
+      <div id="scanPick" class="chips" hidden></div>
+      <button id="scanClose" class="ghost" data-i18n="close">Close</button>
+    </div>
+  </div>
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <script src="data/i18n.js"></script>
+  <script src="data/sites.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
