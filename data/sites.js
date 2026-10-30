@@ -2207,14 +2207,14 @@ window.SITES = [
  {
   "id": "west",
   "name": {
-   "en": "West Site (planned) (demo)",
-   "ms": "Tapak Barat (dirancang) (demo)",
-   "zh": "西厂 (规划中) (演示)"
+   "en": "West Site (demo)",
+   "ms": "Tapak Barat (demo)",
+   "zh": "西厂 (演示)"
   },
   "short": {
-   "en": "West Site (planned)",
-   "ms": "Tapak Barat (dirancang)",
-   "zh": "西厂 (规划中)"
+   "en": "West Site",
+   "ms": "Tapak Barat",
+   "zh": "西厂"
   },
   "address": "Fictional demo — not a real address",
   "phone": "",
