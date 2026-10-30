@@ -2,6 +2,10 @@
    Add a language: copy the "en" block, translate, and add a button in index.html. */
 window.I18N = {
   en: {
+    modeWalk: "Walk", modeCar: "Car", modeMoto: "Motorbike",
+    startDrive: "Drive in from {a}.", driveStraight: "Drive straight for about {d} m.", parkAt: "Park at {a}, then walk.",
+    minDrive: "min drive", minWalkShort: "min walk", noDriveRoute: "No driving route is mapped here, so this is the walking route.",
+    driveCare: "Drive slowly (site limit 15 km/h). Give way to people and forklifts.",
     disclaimer: "For guidance only. Follow alarms, KELUAR / EXIT signs and the Emergency Response Team. Do not delay evacuation to use this app.",
     ehsChecked: "Routes checked by EHS on {d}.", ehsNotChecked: "Routes NOT yet checked by EHS (demo data).", erpRef: "ERP ref.", ertPhone: "Emergency Response Team",
     day_auto: "Day / night: automatic", day_day: "Day view", day_night: "Night view", noPlacesHere: "No places listed for this building yet.",
@@ -60,6 +64,10 @@ window.I18N = {
     same: "You are already there."
   },
   ms: {
+    modeWalk: "Jalan kaki", modeCar: "Kereta", modeMoto: "Motosikal",
+    startDrive: "Masuk dari {a}.", driveStraight: "Pandu terus kira-kira {d} m.", parkAt: "Letak kenderaan di {a}, kemudian jalan kaki.",
+    minDrive: "min memandu", minWalkShort: "min berjalan", noDriveRoute: "Tiada laluan memandu dipetakan di sini, jadi ini laluan berjalan kaki.",
+    driveCare: "Pandu perlahan (had laju tapak 15 km/j). Beri laluan kepada pejalan kaki dan forklift.",
     disclaimer: "Panduan sahaja. Ikut penggera, papan tanda KELUAR dan Pasukan Tindakan Kecemasan. Jangan lengahkan pemindahan kerana aplikasi ini.",
     ehsChecked: "Laluan disemak oleh EHS pada {d}.", ehsNotChecked: "Laluan BELUM disemak oleh EHS (data demo).", erpRef: "Rujukan ERP", ertPhone: "Pasukan Tindakan Kecemasan",
     day_auto: "Siang / malam: automatik", day_day: "Paparan siang", day_night: "Paparan malam", noPlacesHere: "Belum ada tempat untuk bangunan ini.",
@@ -118,6 +126,10 @@ window.I18N = {
     same: "Anda sudah berada di sana."
   },
   zh: {
+    modeWalk: "步行", modeCar: "汽车", modeMoto: "摩托车",
+    startDrive: "从{a}驶入。", driveStraight: "直行约 {d} 米。", parkAt: "在{a}停车,然后步行。",
+    minDrive: "分钟车程", minWalkShort: "分钟步行", noDriveRoute: "此处未绘制行车路线,以下为步行路线。",
+    driveCare: "请慢行(厂区限速 15 公里/小时),礼让行人和叉车。",
     disclaimer: "仅供参考。请听从警报、KELUAR/出口标志和应急小组的指示。切勿因使用本应用而延误疏散。",
     ehsChecked: "路线已于 {d} 由EHS核实。", ehsNotChecked: "路线尚未经EHS核实(演示数据)。", erpRef: "应急计划编号", ertPhone: "应急小组",
     day_auto: "日/夜:自动", day_day: "白天模式", day_night: "夜间模式", noPlacesHere: "该建筑暂无地点信息。",

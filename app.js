@@ -14,7 +14,9 @@
   const I18N = window.I18N || {};
   const $ = (id) => document.getElementById(id);
   const svgNS = "http://www.w3.org/2000/svg";
-  const WALK_SPEED = 1.2; // metres per second
+  const WALK_SPEED = 1.2;  // metres per second
+  const DRIVE_SPEED = 4.2; // 15 km/h, a typical on-site speed limit
+  const MODES = { walk: "🚶", car: "🚗", moto: "🏍️" };
 
   /* ---------- persistent prefs (safe if storage is blocked) ---------- */
   const store = {
@@ -32,6 +34,7 @@
     dayMode: store.get("day") || "auto",                    // auto | day | night
     follow: store.get("follow") === "1",                    // turn the map to the walking direction
     selB: null, rise: true, anim: false,
+    mode: MODES[params.get("mode")] ? params.get("mode") : MODES[store.get("mode")] ? store.get("mode") : "walk", // walk | car | moto
     safety: false,
     here: params.get("here"),
     route: null,      // { from, to, path:[nodeIds], steps:[], dist }
@@ -149,6 +152,7 @@
       if (!site.nodes[a] || !site.nodes[b]) continue;
       if (opts.stepFree && tags.includes("stairs")) continue;
       if (opts.noRestricted && tags.includes("restricted")) continue;
+      if (opts.road && !tags.includes("road")) continue;
       let w = dist(site.nodes[a], site.nodes[b]);
       if (opts.covered && !tags.includes("covered")) w *= UNCOVERED_COST;
       (adj[a] = adj[a] || []).push([b, w]);
@@ -173,6 +177,30 @@
     return path;
   }
 
+  /* Car or motorbike: drive along roads to the car park (or motorcycle park) that makes
+     the whole trip quickest, then walk. Returns null when no road reaches a park. */
+  function vehicleRoute(site, from, to, mode, opts) {
+    const parks = (site.pois || []).filter((p) => p.type === (mode === "moto" ? "moto" : "parking"));
+    let best = null;
+    for (const pk of parks) {
+      const drive = from.node === pk.node ? [from.node] : shortestPath(site, from.node, pk.node, { road: true });
+      if (!drive) continue;
+      const walk = pk.node === to.node ? [pk.node] : shortestPath(site, pk.node, to.node, opts) || shortestPath(site, pk.node, to.node);
+      if (!walk) continue;
+      const dd = pathLength(site, drive), wd = pathLength(site, walk);
+      const time = dd / DRIVE_SPEED + wd / WALK_SPEED;
+      if (!best || time < best.time) best = { pk, drive, walk, dd, wd, time };
+    }
+    if (!best || best.drive.length < 2) return null; // nothing to drive: just walk
+    const steps = buildSteps(site, best.drive, from, best.pk, "drive");
+    const off = best.drive.length - 1;
+    if (best.walk.length > 1) buildSteps(site, best.walk, best.pk, to).slice(1).forEach((st) => {
+      st.seg = [st.seg[0] + off, st.seg[1] + off];
+      steps.push(st);
+    });
+    return { path: [...best.drive, ...best.walk.slice(1)], steps, driveEnd: off, driveDist: best.dd, walkDist: best.wd, park: best.pk };
+  }
+
   function pathLength(site, path) {
     let s = 0;
     for (let i = 1; i < path.length; i++) s += dist(site.nodes[path[i - 1]], site.nodes[path[i]]);
@@ -180,9 +208,11 @@
   }
 
   /* Build human directions from a node path. */
-  function buildSteps(site, path, fromPoi, toPoi) {
+  /* how: "walk" or "drive" (drive ends with parking instead of arriving) */
+  function buildSteps(site, path, fromPoi, toPoi, how = "walk") {
     const N = (id) => site.nodes[id];
-    const steps = [{ node: path[0], kind: "start", text: t("start", { a: L(fromPoi.label) }), seg: [0, 0], dist: 0 }];
+    const drive = how === "drive", straight = drive ? "driveStraight" : "straight";
+    const steps = [{ node: path[0], kind: "start", how, text: t(drive ? "startDrive" : "start", { a: L(fromPoi.label) }), seg: [0, 0], dist: 0 }];
     if (path.length === 1) return steps;
     let acc = 0, segStart = 0;
     for (let i = 1; i < path.length; i++) {
@@ -197,15 +227,15 @@
       const dir = ang > 0 ? "right" : "left"; // y grows downward, so positive cross = clockwise = right
       const where = b.label ? t(dir, { a: L(b.label) }) : t(dir + "Plain");
       steps.push({
-        node: path[i], kind: dir, seg: [segStart, i], dist: acc,
-        text: t("straight", { d: Math.max(5, Math.round(acc / 5) * 5) }) + " " + where
+        node: path[i], kind: dir, how, seg: [segStart, i], dist: acc,
+        text: t(straight, { d: Math.max(5, Math.round(acc / 5) * 5) }) + " " + where
       });
       acc = 0; segStart = i;
     }
     steps.push({
-      node: path[path.length - 1], kind: "arrive", seg: [segStart, path.length - 1], dist: acc,
-      text: t("straight", { d: Math.max(5, Math.round(acc / 5) * 5) }) + " " + t("arrive", { a: L(toPoi.label) }),
-      note: toPoi.note ? L(toPoi.note) : "", restricted: !!toPoi.restricted
+      node: path[path.length - 1], kind: "arrive", how, seg: [segStart, path.length - 1], dist: acc,
+      text: t(straight, { d: Math.max(5, Math.round(acc / 5) * 5) }) + " " + t(drive ? "parkAt" : "arrive", { a: L(toPoi.label) }),
+      note: drive ? "" : toPoi.note ? L(toPoi.note) : "", restricted: drive ? false : !!toPoi.restricted
     });
     return steps;
   }
@@ -613,6 +643,7 @@
       const full = line(0, path.length - 1);
       el("path", { d: full, class: "route-under" }, gRoute);
       el("path", { d: full, class: "route-ahead" }, gRoute);
+      if (state.route.driveEnd) el("path", { d: line(0, state.route.driveEnd), class: "route-drive" }, gRoute);
       if (s0 > 0) el("path", { d: line(0, s0), class: "route-done" }, gRoute);
       const leg = el("path", { d: line(s0, s1), class: "route-leg" }, gRoute);
       if (fresh && !reduceMotion()) {
@@ -711,6 +742,10 @@
       el("ellipse", { rx: 4.2, ry: 1.7, class: "walker-shadow" }, walker);
       walkerArrow = el("path", { d: "M5,-2.4 L9.5,0 L5,2.4 Z", class: "walker-dir" }, walker);
       walkerBody = el("g", { class: "walker-body" }, walker);
+      if (st.how === "drive") { // ride instead of walk
+        walker.classList.add("riding");
+        el("text", { y: -2, "text-anchor": "middle", class: "vehicle" }, walkerBody).textContent = MODES[r.mode];
+      }
       el("line", { x1: 0, y1: -5, x2: -1.6, y2: 0, class: "leg l1" }, walkerBody);
       el("line", { x1: 0, y1: -5, x2: 1.6, y2: 0, class: "leg l2" }, walkerBody);
       el("line", { x1: 0, y1: -5.2, x2: 0, y2: -10, class: "torso" }, walkerBody);
@@ -1123,6 +1158,10 @@
     }
     sum.hidden = false;
     const mins = Math.max(1, Math.round(r.dist / WALK_SPEED / 60));
+    const vehicle = r.mode && r.mode !== "walk";
+    const timeHtml = vehicle
+      ? `<span>${MODES[r.mode]}</span> <b>${Math.max(1, Math.round(r.driveDist / DRIVE_SPEED / 60))}</b> <span>${t("minDrive")} +</span> <span>🚶</span> <b>${Math.max(1, Math.round(r.walkDist / WALK_SPEED / 60))}</b> <span>${t("minWalkShort")} · ~${Math.round(r.dist / 5) * 5} ${t("m")}</span>`
+      : `<b>${mins}</b> <span>${t("min")} · ~${Math.round(r.dist / 5) * 5} ${t("m")}</span>`;
     // what the walk is like: share under cover, any stairs
     const site = state.site;
     let coveredM = 0, stairs = false;
@@ -1137,12 +1176,12 @@
       `<i class="tag ${stairs ? "stairs" : "flat"}">${stairs ? "🪜 " + t("hasStairs") : "♿ " + t("stepFreeOk")}</i>`
     ].join("");
     sum.innerHTML = (r.tour ? `<strong class="tour-name">🧭 ${L(r.tour.label)}</strong>` : "") +
-      `<b>${mins}</b> <span>${t("min")} · ~${Math.round(r.dist / 5) * 5} ${t("m")}</span><span class="tags">${badges}</span>` +
+      timeHtml + `<span class="tags">${badges}</span>` +
       `<button type="button" class="share-btn" aria-label="${t("share")}" title="${t("share")}">↗</button>` +
       (r.notice ? `<small class="notice">${r.notice}</small>` : "");
     box.hidden = false;
     const st = r.steps[state.step];
-    $("stepCount").textContent = state.lang === "zh" ? `${t("step")} ${state.step + 1} ${t("of")} ${r.steps.length} 步` : `${t("step")} ${state.step + 1} ${t("of")} ${r.steps.length}`;
+    $("stepCount").textContent = (st.how === "drive" ? MODES[r.mode] + " " : "") + (state.lang === "zh" ? `${t("step")} ${state.step + 1} ${t("of")} ${r.steps.length} 步` : `${t("step")} ${state.step + 1} ${t("of")} ${r.steps.length}`);
     $("stepDist").textContent = stepDist(st);
     $("stepDist").hidden = !st.dist;
     $("stepIcon").className = "m-icon " + st.kind;
@@ -1158,6 +1197,7 @@
         if (tags.includes("restricted") && !warnBits.includes(t("restrictedAhead"))) warnBits.push(t("restrictedAhead"));
       }
     }
+    if (st.how === "drive") warnBits.push(t("driveCare"));
     if (st.kind === "arrive" && st.note) warnBits.push(st.note);
     if (st.kind === "arrive" && st.restricted) warnBits.push(t("restrictedWarn"));
     $("stepWarn").hidden = !warnBits.length;
@@ -1278,7 +1318,7 @@
     if (state.here) p.set("here", state.here);
     const r = state.route;
     if (r && !r.error && r.tour) p.set("tour", r.tour.id);
-    else if (r && !r.error) { if (!r.fromPoi.id.startsWith("_")) p.set("from", r.fromPoi.id); p.set("to", r.toPoi.id); }
+    else if (r && !r.error) { if (!r.fromPoi.id.startsWith("_")) p.set("from", r.fromPoi.id); p.set("to", r.toPoi.id); if (r.mode && r.mode !== "walk") p.set("mode", r.mode); }
     if (state.emergency) p.set(state.emergency.drill ? "drill" : "emergency", "1");
     try { history.replaceState(null, "", "?" + p.toString()); } catch { /* file:// or sandbox */ }
   }
@@ -1286,22 +1326,25 @@
   /* step: keep this step (language change); quiet: no scroll, no voice, no slide */
   /* opts: route options for this route (emergency uses its own)
      fromPoi / toPoi: use these instead of the two lists (e.g. "your position" mid-route) */
-  function showRoute({ step = 0, quiet = false, opts = state.opts, fromPoi, toPoi } = {}) {
+  function showRoute({ step = 0, quiet = false, opts = state.opts, fromPoi, toPoi, mode = state.mode } = {}) {
     const site = state.site;
     const from = fromPoi || site.pois.find((p) => p.id === $("fromSel").value);
     const to = toPoi || site.pois.find((p) => p.id === $("toSel").value);
     if (!from || !to) return;
     if (from.node === to.node) {
       state.route = { error: t("same"), fromPoi: from, toPoi: to, path: [], steps: [] };
+    } else if (mode !== "walk" && vehicleRoute(site, from, to, mode, opts)) {
+      const v = vehicleRoute(site, from, to, mode, opts);
+      state.route = { fromPoi: from, toPoi: to, path: v.path, steps: v.steps, opts, mode, driveEnd: v.driveEnd, driveDist: v.driveDist, walkDist: v.walkDist, dist: v.driveDist + v.walkDist };
     } else {
-      let path = shortestPath(site, from.node, to.node, opts), notice = "";
+      let path = shortestPath(site, from.node, to.node, opts), notice = mode !== "walk" ? t("noDriveRoute") : "";
       // nothing fits the options: show the plain shortest route and say so
       if (!path && (opts.covered || opts.stepFree || opts.noRestricted)) {
         path = shortestPath(site, from.node, to.node);
         if (path) notice = t("fallbackRoute");
       }
       if (!path) state.route = { error: t("noRoute"), fromPoi: from, toPoi: to, path: [], steps: [] };
-      else state.route = { fromPoi: from, toPoi: to, path, notice, opts, dist: pathLength(site, path), steps: buildSteps(site, path, from, to) };
+      else state.route = { fromPoi: from, toPoi: to, path, notice, opts, mode: "walk", dist: pathLength(site, path), steps: buildSteps(site, path, from, to) };
     }
     state.step = Math.min(step, Math.max(0, state.route.steps.length - 1));
     if (!quiet) { setPlaying(false); state.fresh = true; }
@@ -1386,7 +1429,7 @@
     if (!from.id.startsWith("_")) $("fromSel").value = from.id;
     $("toSel").value = best.ap.id;
     state.safety = true; $("safetyToggle").setAttribute("aria-pressed", "true"); renderLegend();
-    showRoute({ opts, fromPoi: from, toPoi: best.ap });
+    showRoute({ opts, fromPoi: from, toPoi: best.ap, mode: "walk" });
     renderEmergBar();
   }
 
@@ -1554,7 +1597,7 @@
     const r = state.route;
     if (!r || r.error) return;
     if (r.tour) showTour(r.tour, { step: quiet ? state.step : 0, quiet });
-    else showRoute({ step: quiet ? state.step : 0, quiet, opts: quiet ? r.opts : state.opts, fromPoi: r.fromPoi.id.startsWith("_") ? r.fromPoi : undefined });
+    else showRoute({ step: quiet ? state.step : 0, quiet, opts: quiet ? r.opts : state.opts, mode: quiet ? r.mode : state.mode, fromPoi: r.fromPoi.id.startsWith("_") ? r.fromPoi : undefined });
   }
 
   /* share the current route as a link */
@@ -1780,8 +1823,19 @@
     if (!from.id.startsWith("_")) $("fromSel").value = from.id;
     $("toSel").value = best.p.id;
     toast(t("nearestTo", { a: t("type_" + type) }) + ": " + L(best.p.label));
-    showRoute({ fromPoi: from, toPoi: best.p });
+    showRoute({ fromPoi: from, toPoi: best.p, mode: "walk" });
   }
+
+  /* ---------- travel mode: walk, car, motorbike ---------- */
+  function renderModeBtns() {
+    document.querySelectorAll(".mode").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === state.mode)));
+  }
+  document.querySelectorAll(".mode").forEach((b) => (b.onclick = () => {
+    state.mode = b.dataset.mode;
+    store.set("mode", state.mode);
+    renderModeBtns();
+    if (state.route && !state.route.error && !state.route.tour && !state.emergency) showRoute({ fromPoi: state.route.fromPoi.id.startsWith("_") ? state.route.fromPoi : undefined });
+  }));
 
   /* =================================================================
      ROUTE OPTIONS (covered, step-free, avoid restricted)
@@ -1999,7 +2053,7 @@
 
   /* ---------- start ---------- */
   if (!I18N[state.lang]) state.lang = "en";
-  renderPlayBtn(); renderVoiceBtn(); renderOpts(); setSearchMode("to"); renderDayBtn(); setFollow(state.follow);
+  renderPlayBtn(); renderVoiceBtn(); renderOpts(); renderModeBtns(); setSearchMode("to"); renderDayBtn(); setFollow(state.follow);
   if (state.here) startCompass();
   loadSite(params.get("site") || store.get("site") || SITES[0].id);
   updateCompass();

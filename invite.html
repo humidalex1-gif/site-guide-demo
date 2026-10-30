@@ -83,6 +83,13 @@
       <label>Host (you) <input id="host" autocomplete="off" placeholder="Your name"></label>
       <label>Host phone (optional) <input id="phone" type="tel" autocomplete="off" placeholder="01x-xxx xxxx"></label>
     </div>
+    <label>Arriving by
+      <select id="arrive">
+        <option value="car">🚗 Car (drive in, park, then walk)</option>
+        <option value="moto">🏍️ Motorbike (motorcycle park, then walk)</option>
+        <option value="walk">🚶 On foot / dropped off</option>
+      </select>
+    </label>
     <label class="check"><input id="bringIc" type="checkbox" checked> Remind them to bring IC / passport</label>
     <div>
       <div class="note" style="margin-bottom:6px;font-weight:600">Message language</div>
@@ -137,21 +144,21 @@
   const TXT = {
     en: {
       hi: (n) => (n ? `Hi ${n},` : "Hello,"), invited: (site, d, t) => `you're invited to ${site} on ${d} at ${t}.`,
-      address: "Address", drive: "Drive there (Waze)", walk: (a, b) => `Walking directions from ${a} to ${b}`,
+      address: "Address", drive: "Drive there (Waze)", walk: (a, b) => `Walking directions from ${a} to ${b}`, ride: (a, b) => `Directions from ${a} to ${b} (where to park, then walk)`,
       tour: (x) => `Your walking tour: ${x}`, ic: "Please bring your IC / passport and register at the Guard House.",
       host: "Your host", welcome: (n) => (n ? `Welcome, ${n}` : "Welcome"), when: "When", meet: "Go to", start: "Arrive at",
       scan: "Scan for walking directions", foot: "Scan the QR code when you arrive. It shows the way, step by step."
     },
     ms: {
       hi: (n) => (n ? `Hai ${n},` : "Salam sejahtera,"), invited: (site, d, t) => `anda dijemput ke ${site} pada ${d}, jam ${t}.`,
-      address: "Alamat", drive: "Pandu ke sana (Waze)", walk: (a, b) => `Arah berjalan dari ${a} ke ${b}`,
+      address: "Alamat", drive: "Pandu ke sana (Waze)", walk: (a, b) => `Arah berjalan dari ${a} ke ${b}`, ride: (a, b) => `Arah dari ${a} ke ${b} (tempat letak kenderaan, kemudian jalan kaki)`,
       tour: (x) => `Lawatan berjalan anda: ${x}`, ic: "Sila bawa IC / pasport dan daftar di pondok pengawal.",
       host: "Tuan rumah", welcome: (n) => (n ? `Selamat datang, ${n}` : "Selamat datang"), when: "Bila", meet: "Pergi ke", start: "Tiba di",
       scan: "Imbas untuk arah berjalan", foot: "Imbas kod QR apabila tiba. Ia menunjukkan jalan, langkah demi langkah."
     },
     zh: {
       hi: (n) => (n ? `${n}您好,` : "您好,"), invited: (site, d, t) => `诚邀您于 ${d} ${t} 前来${site}。`,
-      address: "地址", drive: "驾车前往 (Waze)", walk: (a, b) => `从${a}到${b}的步行路线`,
+      address: "地址", drive: "驾车前往 (Waze)", walk: (a, b) => `从${a}到${b}的步行路线`, ride: (a, b) => `从${a}到${b}的路线(停车位置及步行)`,
       tour: (x) => `您的步行导览:${x}`, ic: "请携带身份证/护照,并在保安亭登记。",
       host: "接待人", welcome: (n) => (n ? `欢迎,${n}` : "欢迎"), when: "时间", meet: "前往", start: "到达",
       scan: "扫码查看步行路线", foot: "到达后请扫描二维码,按步骤指引前往。"
@@ -189,7 +196,7 @@
     const s = site(), to = $("to").value;
     const p = new URLSearchParams({ site: s.id });
     if (to.startsWith("tour:")) p.set("tour", to.slice(5));
-    else { p.set("from", $("from").value); p.set("to", to); }
+    else { p.set("from", $("from").value); p.set("to", to); if ($("arrive").value !== "walk") p.set("mode", $("arrive").value); }
     p.set("lang", lang);
     return base + "index.html?" + p.toString();
   }
@@ -209,7 +216,7 @@
     const tour = toVal.startsWith("tour:") ? (s.tours || []).find((x) => x.id === toVal.slice(5)) : null;
     const to = tour ? null : s.pois.find((p) => p.id === toVal);
     const siteName = L(s.name), time = $("time").value || "…";
-    const walkLine = tour ? T.tour(L(tour.label)) : T.walk(L(from.label), L(to.label));
+    const walkLine = tour ? T.tour(L(tour.label)) : ($("arrive").value === "walk" ? T.walk : T.ride)(L(from.label), L(to.label));
     const lines = [
       T.hi(name) + (lang === "zh" ? "" : " ") + T.invited(siteName, dateText(), time), "",
       s.address ? `📍 ${T.address}: ${s.address}` : "",
@@ -253,7 +260,7 @@
   fillSites(); fillPlaces(); build();
   $("site").onchange = () => { fillPlaces(); build(); };
   ["from", "to", "date", "time", "name", "host", "phone", "bringIc"].forEach((id) => $(id).addEventListener("input", build));
-  ["from", "to", "bringIc"].forEach((id) => $(id).addEventListener("change", build));
+  ["from", "to", "bringIc", "arrive"].forEach((id) => $(id).addEventListener("change", build));
   document.querySelectorAll(".lang button").forEach((b) => (b.onclick = () => {
     lang = b.dataset.lang;
     document.querySelectorAll(".lang button").forEach((x) => x.classList.toggle("on", x === b));

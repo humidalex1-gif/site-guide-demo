@@ -508,28 +508,42 @@ window.SITES = [
      "ms": "tanjakan tempat letak kereta",
      "zh": "停车场坡道"
     }
+   },
+   "PKC": {
+    "x": 343,
+    "y": 165,
+    "label": {
+     "en": "the car park entrance",
+     "ms": "pintu masuk tempat letak kereta",
+     "zh": "停车场入口"
+    }
    }
   },
   "edges": [
    [
     "gate",
-    "gd"
+    "gd",
+    "road"
    ],
    [
     "gd",
-    "A"
+    "A",
+    "road"
    ],
    [
     "A",
-    "BS"
+    "BS",
+    "road"
    ],
    [
     "BS",
-    "B"
+    "B",
+    "road"
    ],
    [
     "A",
-    "C"
+    "C",
+    "road"
    ],
    [
     "C",
@@ -537,7 +551,8 @@ window.SITES = [
    ],
    [
     "C",
-    "C2"
+    "C2",
+    "road"
    ],
    [
     "C2",
@@ -546,7 +561,8 @@ window.SITES = [
    ],
    [
     "C2",
-    "D"
+    "D",
+    "road"
    ],
    [
     "D",
@@ -554,7 +570,8 @@ window.SITES = [
    ],
    [
     "D",
-    "E"
+    "E",
+    "road"
    ],
    [
     "B",
@@ -582,15 +599,18 @@ window.SITES = [
    ],
    [
     "F",
-    "R2a"
+    "R2a",
+    "road"
    ],
    [
     "R2a",
-    "E"
+    "E",
+    "road"
    ],
    [
     "F",
-    "I"
+    "I",
+    "road"
    ],
    [
     "I",
@@ -598,15 +618,18 @@ window.SITES = [
    ],
    [
     "I",
-    "M"
+    "M",
+    "road"
    ],
    [
     "M",
-    "MP"
+    "MP",
+    "road"
    ],
    [
     "MP",
-    "N"
+    "N",
+    "road"
    ],
    [
     "N",
@@ -614,7 +637,8 @@ window.SITES = [
    ],
    [
     "N",
-    "S1"
+    "S1",
+    "road"
    ],
    [
     "S1",
@@ -622,7 +646,8 @@ window.SITES = [
    ],
    [
     "S1",
-    "S2"
+    "S2",
+    "road"
    ],
    [
     "S2",
@@ -630,15 +655,18 @@ window.SITES = [
    ],
    [
     "S2",
-    "O"
+    "O",
+    "road"
    ],
    [
     "O",
-    "LG"
+    "LG",
+    "road"
    ],
    [
     "E",
-    "SR"
+    "SR",
+    "road"
    ],
    [
     "SR",
@@ -646,7 +674,8 @@ window.SITES = [
    ],
    [
     "SR",
-    "AP"
+    "AP",
+    "road"
    ],
    [
     "AP",
@@ -654,7 +683,18 @@ window.SITES = [
    ],
    [
     "AP",
-    "O"
+    "O",
+    "road"
+   ],
+   [
+    "E",
+    "PKC",
+    "road"
+   ],
+   [
+    "PKC",
+    "PK",
+    "road"
    ],
    [
     "L",

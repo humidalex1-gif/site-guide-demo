@@ -82,6 +82,11 @@
       </div>
 
       <div class="route-form">
+        <div class="modes row" role="group" aria-label="Travel mode">
+          <button type="button" class="mode" data-mode="walk" aria-pressed="true"><span aria-hidden="true">🚶</span> <span data-i18n="modeWalk">Walk</span></button>
+          <button type="button" class="mode" data-mode="car" aria-pressed="false"><span aria-hidden="true">🚗</span> <span data-i18n="modeCar">Car</span></button>
+          <button type="button" class="mode" data-mode="moto" aria-pressed="false"><span aria-hidden="true">🏍️</span> <span data-i18n="modeMoto">Motorbike</span></button>
+        </div>
         <label><span data-i18n="from">From</span>
           <select id="fromSel"></select>
         </label>

@@ -322,6 +322,14 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 .nearby button:hover { border-color: var(--accent); }
 .chip.fac-chip[aria-pressed="true"] { background: #00838f; border-color: #00838f; color: #fff; }
 
+/* Travel mode: walk / car / motorbike */
+.modes { gap: 6px; }
+.mode { flex: 1; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 12px; padding: 9px 6px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.mode[aria-pressed="true"] { background: var(--head); border-color: var(--head); color: #fff; }
+.route-drive { fill: none; stroke: #1565c0; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 9 5; opacity: .85; }
+.walker.riding .leg, .walker.riding .torso, .walker.riding .head { display: none; }
+.walker .vehicle { font-size: 13px; }
+
 /* Route options */
 .opts { flex-wrap: wrap; gap: 6px; }
 .row > .opt { flex: 1 1 auto; }
