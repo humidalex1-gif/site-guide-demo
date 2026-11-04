@@ -2,6 +2,7 @@
    Add a language: copy the "en" block, translate, and add a button in index.html. */
 window.I18N = {
   en: {
+    locOff: "Location is turned off. Turn it on, then tap 📍 again.",
     myLocation: "My location", useGps: "Use my location (GPS)", yourLocationIs: "your location", locating: "Finding your location…",
     locNear: "You are near {a} (GPS ±{m} m).", locOutside: "You seem to be outside {a}, about {d} away.",
     locNoSetup: "My location isn't set up for this site yet.", locDenied: "Location is off or not allowed. Turn on location and try again.",
@@ -68,6 +69,7 @@ window.I18N = {
     same: "You are already there."
   },
   ms: {
+    locOff: "Lokasi dimatikan. Hidupkan, kemudian tekan 📍 sekali lagi.",
     myLocation: "Lokasi saya", useGps: "Guna lokasi saya (GPS)", yourLocationIs: "lokasi anda", locating: "Mencari lokasi anda…",
     locNear: "Anda berhampiran {a} (GPS ±{m} m).", locOutside: "Anda kelihatan berada di luar {a}, kira-kira {d}.",
     locNoSetup: "Lokasi saya belum disediakan untuk tapak ini.", locDenied: "Lokasi dimatikan atau tidak dibenarkan. Hidupkan lokasi dan cuba lagi.",
@@ -134,6 +136,7 @@ window.I18N = {
     same: "Anda sudah berada di sana."
   },
   zh: {
+    locOff: "定位已关闭。请开启后再点 📍。",
     myLocation: "我的位置", useGps: "使用我的位置 (GPS)", yourLocationIs: "您的位置", locating: "正在定位…",
     locNear: "您在{a}附近 (GPS ±{m} 米)。", locOutside: "您似乎在{a}外面,距离约 {d}。",
     locNoSetup: "此厂区尚未设置定位。", locDenied: "定位已关闭或未允许。请开启定位后重试。",

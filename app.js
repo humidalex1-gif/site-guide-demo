@@ -1474,8 +1474,13 @@
     const site = state.site;
     if (!site.geo) { toast(t("locNoSetup")); return; }
     if (!navigator.geolocation) { toast(t("locDenied")); return; }
+    if (nativeApp && nativeApp.locationEnabled && !nativeApp.locationEnabled()) {
+      toast(t("locOff"));
+      nativeApp.openLocationSettings();
+      return;
+    }
     toast(t("locating"));
-    navigator.geolocation.getCurrentPosition((pos) => {
+    const found = (pos) => {
       const { latitude, longitude, accuracy } = pos.coords;
       const p = toSite(site, latitude, longitude);
       const xs = site.boundary.map((b) => b[0]), ys = site.boundary.map((b) => b[1]);
@@ -1507,7 +1512,13 @@
       renderMap();
       flyTo(fitPoints([P(p.x, p.y, 0)], 0.5, 40));
       setSearchMode("to");
-    }, (err) => toast(t(err.code === 1 ? "locDenied" : "locFail")), { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 });
+    };
+    const failed = (err) => toast(t(err.code === 1 ? "locDenied" : "locFail"));
+    // precise GPS first; if it's too slow (indoors), a rougher Wi-Fi / network position
+    navigator.geolocation.getCurrentPosition(found, (err) => {
+      if (err.code === 1) return failed(err);
+      navigator.geolocation.getCurrentPosition(found, failed, { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 });
+    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 10000 });
   }
   $("locBtn").onclick = () => { setFollow(false); locateMe(); };
   $("scanGps").onclick = () => { closeScanner(); locateMe(); };
