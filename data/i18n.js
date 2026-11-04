@@ -2,6 +2,10 @@
    Add a language: copy the "en" block, translate, and add a button in index.html. */
 window.I18N = {
   en: {
+    myLocation: "My location", useGps: "Use my location (GPS)", yourLocationIs: "your location", locating: "Finding your location…",
+    locNear: "You are near {a} (GPS ±{m} m).", locOutside: "You seem to be outside {a}, about {d} away.",
+    locNoSetup: "My location isn't set up for this site yet.", locDenied: "Location is off or not allowed. Turn on location and try again.",
+    locFail: "Couldn't get a GPS fix. Try outdoors, or scan a poster.", locWeak: "GPS is weak here, so this may be off: check with a poster.",
     modeWalk: "Walk", modeCar: "Car", modeMoto: "Motorbike",
     startDrive: "Drive in from {a}.", driveStraight: "Drive straight for about {d} m.", parkAt: "Park at {a}, then walk.",
     minDrive: "min drive", minWalkShort: "min walk", noDriveRoute: "No driving route is mapped here, so this is the walking route.",
@@ -64,6 +68,10 @@ window.I18N = {
     same: "You are already there."
   },
   ms: {
+    myLocation: "Lokasi saya", useGps: "Guna lokasi saya (GPS)", yourLocationIs: "lokasi anda", locating: "Mencari lokasi anda…",
+    locNear: "Anda berhampiran {a} (GPS ±{m} m).", locOutside: "Anda kelihatan berada di luar {a}, kira-kira {d}.",
+    locNoSetup: "Lokasi saya belum disediakan untuk tapak ini.", locDenied: "Lokasi dimatikan atau tidak dibenarkan. Hidupkan lokasi dan cuba lagi.",
+    locFail: "Tidak dapat isyarat GPS. Cuba di luar bangunan, atau imbas poster.", locWeak: "Isyarat GPS lemah di sini, jadi mungkin tidak tepat: semak dengan poster.",
     modeWalk: "Jalan kaki", modeCar: "Kereta", modeMoto: "Motosikal",
     startDrive: "Masuk dari {a}.", driveStraight: "Pandu terus kira-kira {d} m.", parkAt: "Letak kenderaan di {a}, kemudian jalan kaki.",
     minDrive: "min memandu", minWalkShort: "min berjalan", noDriveRoute: "Tiada laluan memandu dipetakan di sini, jadi ini laluan berjalan kaki.",
@@ -126,6 +134,10 @@ window.I18N = {
     same: "Anda sudah berada di sana."
   },
   zh: {
+    myLocation: "我的位置", useGps: "使用我的位置 (GPS)", yourLocationIs: "您的位置", locating: "正在定位…",
+    locNear: "您在{a}附近 (GPS ±{m} 米)。", locOutside: "您似乎在{a}外面,距离约 {d}。",
+    locNoSetup: "此厂区尚未设置定位。", locDenied: "定位已关闭或未允许。请开启定位后重试。",
+    locFail: "无法获取 GPS 定位。请到室外重试,或扫描海报。", locWeak: "此处 GPS 信号较弱,位置可能不准:请以海报为准。",
     modeWalk: "步行", modeCar: "汽车", modeMoto: "摩托车",
     startDrive: "从{a}驶入。", driveStraight: "直行约 {d} 米。", parkAt: "在{a}停车,然后步行。",
     minDrive: "分钟车程", minWalkShort: "分钟步行", noDriveRoute: "此处未绘制行车路线,以下为步行路线。",

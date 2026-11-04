@@ -314,6 +314,11 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 }
 @media (prefers-reduced-motion: reduce) { .bld.rise, .bld.dest, .walker-body .leg, .barrier-arm.moving, .emerg-mode .safety-m.exit { animation: none; } }
 
+/* My location (GPS) */
+.gps-acc { fill: rgba(30, 136, 229, .14); stroke: rgba(30, 136, 229, .5); stroke-width: 1; pointer-events: none; }
+.gps-dot { fill: #1e88e5; stroke: #fff; stroke-width: 2; pointer-events: none; }
+.gps-btn { width: 100%; }
+
 /* Nearest toilet / water / … */
 .layout > *, .finder { min-width: 0; } /* let the scrolling button row shrink instead of widening the page */
 .nearby { display: flex; gap: 6px; overflow-x: auto; max-width: 100%; padding: 8px 2px 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }

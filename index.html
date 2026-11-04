@@ -53,6 +53,7 @@
         <button id="rotR" class="vbtn" aria-label="Turn map right" title="Turn right">⟳</button>
         <button id="followBtn" class="vbtn" aria-pressed="false" aria-label="Turn map with my walking direction" title="Follow my direction">🧭</button>
         <button id="dayBtn" class="vbtn">🌗</button>
+        <button id="locBtn" class="vbtn" aria-label="My location" title="My location">📍</button>
       </div>
       <div id="bldCard" class="bld-card" hidden>
         <button class="bc-close" aria-label="Close">×</button>
@@ -164,6 +165,7 @@
       <h3 id="scanTitle" data-i18n="scanTitle">Where are you?</h3>
       <div id="viewfinder" class="viewfinder"><video id="scanVideo" autoplay playsinline muted></video><span class="frame" aria-hidden="true"></span></div>
       <p id="scanMsg" class="scan-msg" role="status"></p>
+      <button id="scanGps" class="ghost gps-btn" type="button"><span aria-hidden="true">📍</span> <span data-i18n="useGps">Use my location (GPS)</span></button>
       <div id="scanPick" class="chips" hidden></div>
       <button id="scanClose" class="ghost" data-i18n="close">Close</button>
     </div>

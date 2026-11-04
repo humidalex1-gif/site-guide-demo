@@ -39,6 +39,7 @@
     dayMode: store.get("day") || "auto",                    // auto | day | night
     follow: store.get("follow") === "1",                    // turn the map to the walking direction
     selB: null, rise: true, anim: false,
+    gps: null,        // last "My location" fix on the map: { x, y, acc, node, t }
     mode: MODES[params.get("mode")] ? params.get("mode") : MODES[store.get("mode")] ? store.get("mode") : "walk", // walk | car | moto
     safety: false,
     here: params.get("here"),
@@ -715,6 +716,15 @@
       el("circle", { cx: p[0], cy: p[1], r: 9, class: "here-pulse" }, gTop);
       el("circle", { cx: p[0], cy: p[1], r: 5, fill: "#1e88e5", stroke: "#fff", "stroke-width": 2 }, gTop);
       el("text", { x: p[0], y: p[1] + 18, class: "lbl", "text-anchor": "middle", fill: "#1e5fa8" }, gTop).textContent = t("youAreHere");
+    }
+
+    // "My location": blue dot with a circle showing how exact the GPS fix is
+    if (state.gps) {
+      const g = P(state.gps.x, state.gps.y, 0), acc = Math.min(80, Math.max(4, state.gps.acc));
+      el("ellipse", { cx: g[0], cy: g[1], rx: acc * VIEW.sx, ry: acc * Math.max(VIEW.sy, 0.5), class: "gps-acc" }, gTop);
+      el("circle", { cx: g[0], cy: g[1], r: 9, class: "here-pulse" }, gTop);
+      el("circle", { cx: g[0], cy: g[1], r: 5.5, class: "gps-dot" }, gTop);
+      el("text", { x: g[0], y: g[1] - 12, class: "lbl", "text-anchor": "middle", fill: "#1e5fa8" }, gTop).textContent = "📍 " + t("myLocation");
     }
 
     // destination ripple, current step marker, turn badge, walker
@@ -1420,6 +1430,7 @@
       const poi = site.pois.find((p) => p.node === id);
       return poi || { id: "_pos", node: id, label: node.label || { en: t("yourPosition") } };
     }
+    if (state.gps && state.gpsPoi && Date.now() - state.gps.t < 5 * 60000) return state.gpsPoi;
     const fromId = $("fromSel").value || state.here;
     return site.pois.find((p) => p.id === fromId) || null;
   }
@@ -1445,6 +1456,61 @@
     showRoute({ opts, fromPoi: from, toPoi: best.ap, mode: "walk" });
     renderEmergBar();
   }
+
+  /* =================================================================
+     MY LOCATION (GPS). A site needs  geo: { lat, lon, x, y, north } :
+     the map point (x, y) in metres that sits at lat/lon, and the compass
+     bearing the map's "up" points to (0 = north). Outdoors on site GPS is
+     usually good to 5–15 m; inside steel buildings it can be far off.
+     ================================================================= */
+  function toSite(site, lat, lon) {
+    const g = site.geo, east = (lon - g.lon) * 111320 * Math.cos((g.lat * Math.PI) / 180), north = (lat - g.lat) * 110540;
+    const r = ((g.north || 0) * Math.PI) / 180;
+    const right = east * Math.cos(r) - north * Math.sin(r), up = east * Math.sin(r) + north * Math.cos(r);
+    return { x: g.x + right, y: g.y - up };
+  }
+
+  function locateMe() {
+    const site = state.site;
+    if (!site.geo) { toast(t("locNoSetup")); return; }
+    if (!navigator.geolocation) { toast(t("locDenied")); return; }
+    toast(t("locating"));
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const { latitude, longitude, accuracy } = pos.coords;
+      const p = toSite(site, latitude, longitude);
+      const xs = site.boundary.map((b) => b[0]), ys = site.boundary.map((b) => b[1]);
+      const out = Math.max(Math.min(...xs) - p.x, p.x - Math.max(...xs), Math.min(...ys) - p.y, p.y - Math.max(...ys), 0);
+      if (out > 40) { // clearly not on site
+        state.gps = null; state.gpsPoi = null; renderMap();
+        const d = out >= 1000 ? (out / 1000).toFixed(1) + " km" : Math.round(out / 10) * 10 + " " + t("m");
+        const msg = t("locOutside", { a: L(site.short), d });
+        toast(msg); speak(msg);
+        return;
+      }
+      // nearest walkway point, and a place there if one is close
+      let nodeId = null, best = Infinity;
+      for (const [id, n] of Object.entries(site.nodes)) { const d = Math.hypot(n.x - p.x, n.y - p.y); if (d < best) { best = d; nodeId = id; } }
+      const near = site.pois
+        .map((q) => [q, site.nodes[q.node] ? Math.hypot(site.nodes[q.node].x - p.x, site.nodes[q.node].y - p.y) : Infinity])
+        .filter(([q, d]) => d < 35 && !FACILITY.includes(q.type)).sort((a, b) => a[1] - b[1])[0];
+      const n = site.nodes[nodeId];
+      state.gps = { x: p.x, y: p.y, acc: accuracy, node: nodeId, t: Date.now() };
+      state.gpsPoi = near && near[1] < 25 ? near[0]
+        : { id: "_gps", node: nodeId, label: { en: tIn("en", "yourLocationIs"), ms: tIn("ms", "yourLocationIs"), zh: tIn("zh", "yourLocationIs") } };
+      if (state.gpsPoi.id !== "_gps") $("fromSel").value = state.gpsPoi.id;
+      const where = near ? L(near[0].label) : n && n.label ? L(n.label) : L(site.short);
+      const msg = t("locNear", { a: where, m: Math.round(accuracy) }) + (accuracy > 50 ? " " + t("locWeak") : "");
+      toast(msg); speak(msg);
+      if (navigator.vibrate) navigator.vibrate(30);
+      if (state.emergency && !state.emergency.done) { state.route = null; nearestAssembly(); return; }
+      if ($("toSel").value && $("toSel").value !== state.gpsPoi.id) { showRoute({ fromPoi: state.gpsPoi }); return; }
+      renderMap();
+      flyTo(fitPoints([P(p.x, p.y, 0)], 0.5, 40));
+      setSearchMode("to");
+    }, (err) => toast(t(err.code === 1 ? "locDenied" : "locFail")), { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 });
+  }
+  $("locBtn").onclick = () => { setFollow(false); locateMe(); };
+  $("scanGps").onclick = () => { closeScanner(); locateMe(); };
 
   /* =================================================================
      EMERGENCY MODE (and practice drills)
@@ -1636,7 +1702,7 @@
 
   function loadSite(id, keepRoute) {
     state.site = SITES.find((s) => s.id === id) || SITES[0];
-    state.rise = true; state.selB = null; renderBldCard();
+    state.rise = true; state.selB = null; state.gps = null; state.gpsPoi = null; renderBldCard();
     const ready = !!state.site.buildings;
     $("todo").hidden = ready;
     $("demoBanner").hidden = state.site.status !== "demo";
