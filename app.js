@@ -2182,6 +2182,12 @@
   }));
 
   /* ---------- start ---------- */
+  // inside the Android app the header shows the company mark (brand/ only exists in the APK)
+  if (IN_APP) {
+    const logo = document.querySelector(".logo");
+    logo.classList.add("brand");
+    logo.innerHTML = '<img src="brand/mark.svg" alt="">';
+  }
   if (!I18N[state.lang]) state.lang = "en";
   renderPlayBtn(); renderVoiceBtn(); renderOpts(); renderModeBtns(); setSearchMode("to"); renderDayBtn(); setFollow(state.follow);
   if (state.here) startCompass();
