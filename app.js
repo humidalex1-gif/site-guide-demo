@@ -1308,8 +1308,8 @@
   const canSpeak = webSpeech || !!(nativeApp && nativeApp.speak);
   function stopSpeech() { if (webSpeech) speechSynthesis.cancel(); else if (nativeApp) nativeApp.stop(); }
   state.voice = canSpeak && store.get("voice") === "1";
-  function speak(text) {
-    if (!state.voice || !canSpeak) return;
+  function speak(text, force) {
+    if ((!state.voice && !force) || !canSpeak) return;
     if (!webSpeech) { nativeApp.speak(text, { en: "en-GB", ms: "ms-MY", zh: "zh-CN" }[state.lang] || "en-GB"); return; }
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
@@ -1470,16 +1470,30 @@
     return { x: g.x + right, y: g.y - up };
   }
 
-  function locateMe() {
+  function locateMe(tell = false) {
     const site = state.site;
-    if (!site.geo) { toast(t("locNoSetup")); return; }
-    if (!navigator.geolocation) { toast(t("locDenied")); return; }
+    // say it: the box for "Where am I?", otherwise a short message
+    const report = (msg, o = {}) => {
+      if (tell) showWhere(msg, o);
+      else toast(msg);
+      speak(msg, tell);
+    };
+    // no GPS answer: say what we know from a scanned poster or the route, else ask for a poster
+    const fallback = (key) => {
+      const pos = currentPosition();
+      if (!tell) { toast(t(key)); return; }
+      if (pos && pos.id !== "_gps") report(t("hereFromPoster", { a: L(pos.label) }));
+      else report(key === "locFail" ? t(key) : t(key) + " " + t("hereUnknown"), { scan: true, settings: key === "locOff" });
+    };
+    if (!site.geo) { fallback("locNoSetup"); return; }
+    if (!navigator.geolocation) { fallback("locDenied"); return; }
     if (nativeApp && nativeApp.locationEnabled && !nativeApp.locationEnabled()) {
+      if (tell) { fallback("locOff"); return; }
       toast(t("locOff"));
       nativeApp.openLocationSettings();
       return;
     }
-    toast(t("locating"));
+    if (tell) showWhere(t("locating"), {}); else toast(t("locating"));
     const found = (pos) => {
       const { latitude, longitude, accuracy } = pos.coords;
       const p = toSite(site, latitude, longitude);
@@ -1488,8 +1502,7 @@
       if (out > 40) { // clearly not on site
         state.gps = null; state.gpsPoi = null; renderMap();
         const d = out >= 1000 ? (out / 1000).toFixed(1) + " km" : Math.round(out / 10) * 10 + " " + t("m");
-        const msg = t("locOutside", { a: L(site.short), d });
-        toast(msg); speak(msg);
+        report(t("locOutside", { a: L(site.short), d }));
         return;
       }
       // nearest walkway point, and a place there if one is close
@@ -1505,7 +1518,7 @@
       if (state.gpsPoi.id !== "_gps") $("fromSel").value = state.gpsPoi.id;
       const where = near ? L(near[0].label) : n && n.label ? L(n.label) : L(site.short);
       const msg = t("locNear", { a: where, m: Math.round(accuracy) }) + (accuracy > 50 ? " " + t("locWeak") : "");
-      toast(msg); speak(msg);
+      report(msg, { scan: accuracy > 50 });
       if (navigator.vibrate) navigator.vibrate(30);
       if (state.emergency && !state.emergency.done) { state.route = null; nearestAssembly(); return; }
       if ($("toSel").value && $("toSel").value !== state.gpsPoi.id) { showRoute({ fromPoi: state.gpsPoi }); return; }
@@ -1513,14 +1526,24 @@
       flyTo(fitPoints([P(p.x, p.y, 0)], 0.5, 40));
       setSearchMode("to");
     };
-    const failed = (err) => toast(t(err.code === 1 ? "locDenied" : "locFail"));
+    const failed = (err) => fallback(err.code === 1 ? "locDenied" : "locFail");
     // precise GPS first; if it's too slow (indoors), a rougher Wi-Fi / network position
     navigator.geolocation.getCurrentPosition(found, (err) => {
       if (err.code === 1) return failed(err);
       navigator.geolocation.getCurrentPosition(found, failed, { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 });
     }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 10000 });
   }
-  $("locBtn").onclick = () => { setFollow(false); locateMe(); };
+  /* "Where am I?" box on the map */
+  function showWhere(text, o) {
+    $("whereText").textContent = text;
+    $("whereScan").hidden = !o.scan;
+    $("whereSettings").hidden = !(o.settings && nativeApp && nativeApp.openLocationSettings);
+    $("whereCard").hidden = false;
+  }
+  $("whereBtn").onclick = () => { setFollow(false); locateMe(true); };
+  $("whereCard").querySelector(".bc-close").onclick = () => { $("whereCard").hidden = true; };
+  $("whereScan").onclick = () => { $("whereCard").hidden = true; openScanner(); };
+  $("whereSettings").onclick = () => { $("whereCard").hidden = true; nativeApp.openLocationSettings(); };
   $("scanGps").onclick = () => { closeScanner(); locateMe(); };
 
   /* =================================================================
@@ -1714,6 +1737,7 @@
   function loadSite(id, keepRoute) {
     state.site = SITES.find((s) => s.id === id) || SITES[0];
     state.rise = true; state.selB = null; state.gps = null; state.gpsPoi = null; renderBldCard();
+    $("whereCard").hidden = true;
     const ready = !!state.site.buildings;
     $("todo").hidden = ready;
     $("demoBanner").hidden = state.site.status !== "demo";

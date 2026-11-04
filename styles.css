@@ -316,6 +316,17 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 }
 @media (prefers-reduced-motion: reduce) { .bld.rise, .bld.dest, .walker-body .leg, .barrier-arm.moving, .emerg-mode .safety-m.exit { animation: none; } }
 
+/* "Where am I?" button and its answer box (bottom-left of the map) */
+.where-btn { position: absolute; left: 12px; bottom: 12px; z-index: 4; border: 0; border-radius: 999px; background: #1e88e5; color: #fff; font: inherit; font-size: 15px; font-weight: 800; padding: 11px 16px; box-shadow: var(--shadow); cursor: pointer; }
+.where-btn:active { transform: scale(.97); }
+.where-card { position: absolute; left: 12px; right: 12px; bottom: 64px; z-index: 6; max-width: 420px; background: var(--surface); color: var(--ink); border-radius: 14px; box-shadow: var(--shadow); padding: 12px 40px 12px 14px; animation: drop .18s ease-out; border-left: 5px solid #1e88e5; }
+.where-card p { margin: 0; font-size: 16px; font-weight: 700; line-height: 1.35; }
+.where-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.where-actions button { border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 10px; padding: 8px 10px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.where-actions button[hidden] { display: none; }
+.legend { bottom: 64px !important; } /* keep the safety legend above the button */
+body.emerg-mode .where-btn { background: var(--danger); }
+
 /* My location (GPS) */
 .gps-acc { fill: rgba(30, 136, 229, .14); stroke: rgba(30, 136, 229, .5); stroke-width: 1; pointer-events: none; }
 .gps-dot { fill: #1e88e5; stroke: #fff; stroke-width: 2; pointer-events: none; }

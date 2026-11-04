@@ -2,6 +2,8 @@
    Add a language: copy the "en" block, translate, and add a button in index.html. */
 window.I18N = {
   en: {
+    whereAmI: "Where am I?", scanInstead: "Scan a poster", turnOnLocation: "Turn on location",
+    hereFromPoster: "As far as I know, you are at {a} (your last poster scan or start point).", hereUnknown: "Scan a “You are here” poster and I'll tell you.",
     locOff: "Location is turned off. Turn it on, then tap 📍 again.",
     myLocation: "My location", useGps: "Use my location (GPS)", yourLocationIs: "your location", locating: "Finding your location…",
     locNear: "You are near {a} (GPS ±{m} m).", locOutside: "You seem to be outside {a}, about {d} away.",
@@ -69,6 +71,8 @@ window.I18N = {
     same: "You are already there."
   },
   ms: {
+    whereAmI: "Saya di mana?", scanInstead: "Imbas poster", turnOnLocation: "Hidupkan lokasi",
+    hereFromPoster: "Setahu saya, anda berada di {a} (imbasan poster atau titik mula terakhir anda).", hereUnknown: "Imbas poster “Anda di sini” dan saya akan beritahu.",
     locOff: "Lokasi dimatikan. Hidupkan, kemudian tekan 📍 sekali lagi.",
     myLocation: "Lokasi saya", useGps: "Guna lokasi saya (GPS)", yourLocationIs: "lokasi anda", locating: "Mencari lokasi anda…",
     locNear: "Anda berhampiran {a} (GPS ±{m} m).", locOutside: "Anda kelihatan berada di luar {a}, kira-kira {d}.",
@@ -136,6 +140,8 @@ window.I18N = {
     same: "Anda sudah berada di sana."
   },
   zh: {
+    whereAmI: "我在哪里?", scanInstead: "扫描海报", turnOnLocation: "开启定位",
+    hereFromPoster: "据我所知,您在{a}(根据您最近扫描的海报或起点)。", hereUnknown: "请扫描“您在这里”海报,我来告诉您。",
     locOff: "定位已关闭。请开启后再点 📍。",
     myLocation: "我的位置", useGps: "使用我的位置 (GPS)", yourLocationIs: "您的位置", locating: "正在定位…",
     locNear: "您在{a}附近 (GPS ±{m} 米)。", locOutside: "您似乎在{a}外面,距离约 {d}。",

@@ -53,7 +53,15 @@
         <button id="rotR" class="vbtn" aria-label="Turn map right" title="Turn right">⟳</button>
         <button id="followBtn" class="vbtn" aria-pressed="false" aria-label="Turn map with my walking direction" title="Follow my direction">🧭</button>
         <button id="dayBtn" class="vbtn">🌗</button>
-        <button id="locBtn" class="vbtn" aria-label="My location" title="My location">📍</button>
+      </div>
+      <button id="whereBtn" class="where-btn" type="button"><span aria-hidden="true">📍</span> <span data-i18n="whereAmI">Where am I?</span></button>
+      <div id="whereCard" class="where-card" role="status" hidden>
+        <button class="bc-close" aria-label="Close">×</button>
+        <p id="whereText"></p>
+        <div class="where-actions">
+          <button id="whereScan" type="button">📷 <span data-i18n="scanInstead">Scan a poster</span></button>
+          <button id="whereSettings" type="button" hidden>⚙ <span data-i18n="turnOnLocation">Turn on location</span></button>
+        </div>
       </div>
       <div id="bldCard" class="bld-card" hidden>
         <button class="bc-close" aria-label="Close">×</button>
