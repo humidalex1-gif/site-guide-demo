@@ -796,8 +796,11 @@
     for (let i = 1; i < nodes.length; i++) { const l = dist(nodes[i - 1], nodes[i]); segs.push([nodes[i - 1], nodes[i], l]); total += l; }
     const drive = (total / 6) * 1000, cycle = drive * 2 + 10000, t0 = performance.now() - drive * 0.4;
     const layer = busLayer;
+    let last = 0;
     const tick = (now) => {
       if (busLayer !== layer) return;
+      if (now - last < 80 || document.hidden) { busRAF = requestAnimationFrame(tick); return; }
+      last = now;
       const k = (now - t0) % cycle;
       // there (drive) · wait 4 s · back (drive) · wait 6 s
       let f = k < drive ? k / drive : k < drive + 4000 ? 1 : k < drive * 2 + 4000 ? 1 - (k - drive - 4000) / drive : 0;
@@ -1079,7 +1082,9 @@
     document.querySelectorAll("[data-i18n]").forEach((n) => { n.textContent = t(n.dataset.i18n); });
     document.querySelectorAll(".lang button").forEach((b) => b.classList.toggle("on", b.dataset.lang === state.lang));
     $("viewToggle").textContent = state.view === "iso" ? t("view2d") : t("view3d");
-    document.title = t("appTitle") + " · " + L(state.site ? state.site.short : "");
+    const appName = nativeApp && nativeApp.appName ? nativeApp.appName() : t("appTitle");
+    document.querySelector(".title").textContent = appName;
+    document.title = appName + " · " + L(state.site ? state.site.short : "");
   }
 
   function fillSiteSelect() {
@@ -1891,6 +1896,7 @@
 
   async function openScanner() {
     requestCompass(); // must happen inside the tap on iPhone
+    closeResults();
     $("scanner").hidden = false;
     $("scanPick").hidden = true;
     $("viewfinder").hidden = false;
@@ -1921,9 +1927,11 @@
 
   // returns (video) => QR text or null
   async function qrReader() {
-    if ("BarcodeDetector" in window) {
+    // some phones list BarcodeDetector but never answer: give it 1.5 s, and inside the Android app use jsQR only
+    const within = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error("timeout")), ms))]);
+    if ("BarcodeDetector" in window && !IN_APP) {
       try {
-        if ((await BarcodeDetector.getSupportedFormats()).includes("qr_code")) {
+        if ((await within(BarcodeDetector.getSupportedFormats(), 1500)).includes("qr_code")) {
           const d = new BarcodeDetector({ formats: ["qr_code"] });
           return async (v) => { const c = await d.detect(v); return c.length ? c[0].rawValue : null; };
         }

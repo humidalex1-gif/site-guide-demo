@@ -127,7 +127,7 @@ button, select { font: inherit; }
 .route-form { display: grid; grid-template-columns: 1fr auto; gap: 8px 10px; align-items: end; }
 .route-form label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); font-weight: 600; grid-column: 1; }
 .route-form select { width: 100%; padding: 11px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font-size: 15px; }
-.swap { grid-column: 2; grid-row: 1 / span 2; align-self: center; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font-size: 18px; }
+.swap { grid-column: 2; grid-row: 2 / span 2; align-self: center; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font-size: 18px; }
 .route-form .row { grid-column: 1 / -1; }
 .row { display: flex; gap: 8px; }
 .row > * { flex: 1; }
@@ -245,14 +245,14 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 .crown-hi { fill: rgba(255, 255, 255, .18); }
 .lamp-pole { stroke: #6d7884; stroke-width: .8; }
 .lamp { fill: #c9d1d8; }
-.lamp.on { fill: #fff3c4; filter: drop-shadow(0 0 2px #ffd36b); }
+.lamp.on { fill: #fff3c4; stroke: #ffd36b; stroke-width: .8; }
 .fence { fill: none; stroke: #7f9a86; stroke-width: .7; opacity: .9; }
 .canopy { fill: rgba(63, 156, 143, .72); stroke: #2b7f74; stroke-width: .6; }
 .canopy-post { stroke: #2b7f74; stroke-width: .7; }
 .door { fill: #22313d; opacity: .85; }
 .door.roller { fill: #c8ced4; stroke: #8c96a0; stroke-width: .4; }
 .win { fill: rgba(205, 225, 240, .62); }
-.win.lit { fill: #ffd36b; filter: drop-shadow(0 0 1.5px rgba(255, 200, 80, .9)); }
+.win.lit { fill: #ffd36b; }
 .solar { fill: #284b7d; stroke: #9db4d4; stroke-width: .5; }
 .solar-grid { fill: none; stroke: rgba(160, 190, 230, .55); stroke-width: .35; }
 .barrier-arm { stroke: #e0b400; stroke-width: 1.4; stroke-linecap: round; stroke-dasharray: 2 1.4; }
@@ -264,7 +264,7 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 .bld.rise { transform-box: fill-box; transform-origin: 50% 100%; animation: rise .7s cubic-bezier(.2, .8, .2, 1) both; }
 @keyframes rise { from { transform: scaleY(.05); opacity: 0; } 60% { opacity: 1; } }
 .bld.sel { filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 7px var(--accent)); }
-.bld.dest { animation: dest-glow 1.8s ease-in-out infinite; }
+.bld.dest { filter: drop-shadow(0 0 4px rgba(255, 106, 19, .85)); }
 @keyframes dest-glow { 0%, 100% { filter: drop-shadow(0 0 0 rgba(255, 106, 19, 0)); } 50% { filter: drop-shadow(0 0 6px rgba(255, 106, 19, .9)); } }
 
 /* the walking person */
