@@ -4,7 +4,7 @@
    - Photos are cached the first time they load. The app also asks for every
      photo of the open site in advance (see "warm-photos" below).
    After changing the list of app files, bump VERSION so phones pick it up. */
-const VERSION = "v3";
+const VERSION = "v5";
 const APP_CACHE = "sg-app-" + VERSION;
 const PHOTO_CACHE = "sg-photos";
 
@@ -13,7 +13,9 @@ const APP_FILES = [
   "index.html",
   "styles.css",
   "app.js",
+  "data/config.js",
   "data/i18n.js",
+  "assets/vendor/jsQR.js",
   "data/sites.js",
   "manifest.webmanifest",
   "assets/icon.svg"

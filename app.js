@@ -11,6 +11,11 @@
   "use strict";
 
   const SITES = window.SITES || [];
+  // The Android app (APK) serves these files from this address and adds window.AndroidApp
+  // (voice, share). Links meant for other people then point at the public website instead.
+  const IN_APP = location.hostname === "appassets.androidplatform.net";
+  const nativeApp = window.AndroidApp || null;
+  const CONFIG = window.GUIDE_CONFIG || {};
   const I18N = window.I18N || {};
   const $ = (id) => document.getElementById(id);
   const svgNS = "http://www.w3.org/2000/svg";
@@ -1284,10 +1289,13 @@
   };
 
   /* ---------- spoken directions (free, built into the phone) ---------- */
-  const canSpeak = "speechSynthesis" in window;
+  const webSpeech = "speechSynthesis" in window;
+  const canSpeak = webSpeech || !!(nativeApp && nativeApp.speak);
+  function stopSpeech() { if (webSpeech) speechSynthesis.cancel(); else if (nativeApp) nativeApp.stop(); }
   state.voice = canSpeak && store.get("voice") === "1";
   function speak(text) {
     if (!state.voice || !canSpeak) return;
+    if (!webSpeech) { nativeApp.speak(text, { en: "en-GB", ms: "ms-MY", zh: "zh-CN" }[state.lang] || "en-GB"); return; }
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = { en: "en-GB", ms: "ms-MY", zh: "zh-CN" }[state.lang] || "en-GB";
@@ -1309,7 +1317,7 @@
     store.set("voice", state.voice ? "1" : "0");
     renderVoiceBtn();
     if (state.voice && state.route && !state.route.error) speak($("stepText").textContent);
-    else if (canSpeak) speechSynthesis.cancel();
+    else stopSpeech();
   };
 
   function updateUrl() {
@@ -1386,7 +1394,7 @@
   function clearRoute() {
     state.route = null; state.step = 0;
     setPlaying(false);
-    if (canSpeak) speechSynthesis.cancel();
+    stopSpeech();
     cancelAnimationFrame(walkerRAF);
     $("toSel").value = "";
     flyTo(state.baseVb);
@@ -1522,6 +1530,7 @@
     }
     // drill finished: share the result (the person chooses where to send it)
     const text = `${t("drillTitle")} · ${L(state.site.short)} · ${$("ebSub").textContent}`;
+    if (nativeApp && nativeApp.share) { nativeApp.share(text); return; }
     try { if (navigator.share) { await navigator.share({ text }); return; } } catch { return; }
     copyText(text);
   };
@@ -1600,12 +1609,22 @@
     else showRoute({ step: quiet ? state.step : 0, quiet, opts: quiet ? r.opts : state.opts, mode: quiet ? r.mode : state.mode, fromPoi: r.fromPoi.id.startsWith("_") ? r.fromPoi : undefined });
   }
 
+  // this page's link, or inside the Android app the same route on the website
+  function shareLink() {
+    if (!IN_APP || !CONFIG.webUrl) return location.href.split("#")[0];
+    const p = new URLSearchParams(location.search);
+    const id = p.get("site");
+    if (id && CONFIG.publicIds && CONFIG.publicIds[id]) p.set("site", CONFIG.publicIds[id]);
+    return CONFIG.webUrl + "?" + p.toString();
+  }
+
   /* share the current route as a link */
   async function shareRoute() {
     const r = state.route;
     if (!r || r.error) return;
-    const url = location.href.split("#")[0];
+    const url = shareLink();
     const text = r.tour ? L(r.tour.label) : `${L(r.fromPoi.label)} → ${L(r.toPoi.label)}`;
+    if (nativeApp && nativeApp.share) { nativeApp.share(text + "\n" + url); return; }
     try { if (navigator.share) { await navigator.share({ title: t("appTitle"), text, url }); return; } } catch { return; }
     copyText(url);
   }
@@ -1633,7 +1652,7 @@
   }
 
   /* ---------- offline (service worker, only on http/https) ---------- */
-  const canOffline = "serviceWorker" in navigator && /^https?:$/.test(location.protocol);
+  const canOffline = "serviceWorker" in navigator && /^https?:$/.test(location.protocol) && !IN_APP;
   if (canOffline) navigator.serviceWorker.register("sw.js").catch(() => { /* offline mode unavailable */ });
 
   // ask the service worker to download this site's photos while there is signal
@@ -1877,11 +1896,10 @@
     $("viewfinder").hidden = false;
     setScanMsg("scanHint");
     const fail = (key) => { setScanMsg(key); $("viewfinder").hidden = true; fillScanPick(); };
-    if (!("BarcodeDetector" in window) || !navigator.mediaDevices?.getUserMedia) return fail("scanUnsupported");
+    if (!navigator.mediaDevices?.getUserMedia) return fail("scanUnsupported");
     try {
-      const formats = await BarcodeDetector.getSupportedFormats();
-      if (!formats.includes("qr_code")) return fail("scanUnsupported");
-      const detector = new BarcodeDetector({ formats: ["qr_code"] });
+      const detect = await qrReader();
+      if (!detect) return fail("scanUnsupported");
       scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
       if ($("scanner").hidden) return closeScanner(); // closed while asking for the camera
       const video = $("scanVideo");
@@ -1890,8 +1908,8 @@
       const loop = async () => {
         if (!scanStream) return;
         try {
-          const codes = await detector.detect(video);
-          if (codes.length && handleScan(codes[0].rawValue)) return;
+          const text = await detect(video);
+          if (text && handleScan(text)) return;
         } catch { /* frame not ready */ }
         scanTimer = setTimeout(loop, 250);
       };
@@ -1899,6 +1917,33 @@
     } catch {
       fail("cameraDenied");
     }
+  }
+
+  // returns (video) => QR text or null
+  async function qrReader() {
+    if ("BarcodeDetector" in window) {
+      try {
+        if ((await BarcodeDetector.getSupportedFormats()).includes("qr_code")) {
+          const d = new BarcodeDetector({ formats: ["qr_code"] });
+          return async (v) => { const c = await d.detect(v); return c.length ? c[0].rawValue : null; };
+        }
+      } catch { /* fall back to jsQR */ }
+    }
+    if (!window.jsQR) await new Promise((ok) => {
+      const sc = document.createElement("script");
+      sc.src = "assets/vendor/jsQR.js"; sc.onload = ok; sc.onerror = ok;
+      document.head.appendChild(sc);
+    });
+    if (!window.jsQR) return null;
+    const canvas = document.createElement("canvas"), g = canvas.getContext("2d", { willReadFrequently: true });
+    return (v) => {
+      if (!v.videoWidth) return null;
+      const k = Math.min(1, 640 / Math.max(v.videoWidth, v.videoHeight)); // small frames keep budget phones fast
+      canvas.width = Math.round(v.videoWidth * k); canvas.height = Math.round(v.videoHeight * k);
+      g.drawImage(v, 0, 0, canvas.width, canvas.height);
+      const r = window.jsQR(g.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height, { inversionAttempts: "dontInvert" });
+      return r ? r.data : null;
+    };
   }
 
   function closeScanner() {
@@ -2044,7 +2089,7 @@
   document.querySelectorAll(".lang button").forEach((b) => (b.onclick = () => {
     state.lang = b.dataset.lang; store.set("lang", state.lang);
     const keep = state.route && !state.route.error;
-    if (canSpeak) speechSynthesis.cancel();
+    stopSpeech();
     fillSiteSelect(); fillPoiSelects(); fillPopular(); fillTours(); fillNearby(); fillInfo(); applyStaticText(); renderLegend(); renderPlayBtn(); renderVoiceBtn(); setSearchMode(search.mode);
     if (keep) rerunRoute(true);
     else renderMap();
